@@ -19,7 +19,7 @@ add print() calls
 
 good event looks something like this
 ```
-> HCI Event: LE Meta Event (0x3e) plen 37                                                                               #563 515.638414
+> HCI Event: LE Meta Event (0x3e) plen 37                                  #563 515.638414
       LE Advertising Report (0x02)
         Num reports: 1
         Event type: Non connectable undirected - ADV_NONCONN_IND (0x03)
