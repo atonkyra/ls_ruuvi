@@ -43,8 +43,8 @@ class Executor(object):
         self._process.stdin.write(cmd.encode('ascii'))
         self._process.stdin.flush()
 
-    def start_process(self, args):
-        self._process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    def start_process(self, start_args):
+        self._process = subprocess.Popen(start_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         self._input_handler_thread = threading.Thread(target=self._input_handler)
         self._input_handler_thread.daemon = True
         self._input_handler_thread.start()
@@ -115,6 +115,7 @@ def handle_event(ev):
         handle_metrics(ev['Address'], d)
         handle_metrics(ev['Address'], {'last_seen': time.time()})
         return
+
 
 def btmon_loop(btr):
     ev = None
