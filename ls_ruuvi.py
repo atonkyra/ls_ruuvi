@@ -101,7 +101,9 @@ def handle_event(ev):
     ev_data = 'FF9904%s' % ev['Data'].upper()
     data = ruuvitag.get_data_format_2and4(ev_data)
     if data is not None:
-        pass
+        d = ruuvitag.UrlDecoder().decode_data(data)
+        handle_metrics(ev['Address'], d)
+        handle_metrics(ev['Address'], {'last_seen': time.time()})
         return
     data = ruuvitag.get_data_format_3(ev_data)
     if data is not None:
