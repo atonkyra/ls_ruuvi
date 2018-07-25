@@ -15,7 +15,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('ls_ruuvi')
 parser = argparse.ArgumentParser(description='less shitty ruuvitag beacon catcher')
-parser.add_argument('-i', '--index-controller', required=True, help='BT controller index', type=int)
+parser.add_argument('-i', '--index-controller', required=False, help='BT controller index', type=int, default=0)
 parser.add_argument('-p', '--exporter-port', required=True, help='Prometheus Exporter port', type=int)
 args = parser.parse_args()
 registry_metrics = {}
