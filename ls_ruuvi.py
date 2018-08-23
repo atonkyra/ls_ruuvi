@@ -83,7 +83,7 @@ def handle_metrics(tag, m):
     global registry_metrics
     for key, value in m.items():
         if not isinstance(value, (int, float)):
-            logger.error('got non-numeric value from %s: %s (ignored)', key, value)
+            logger.error('got non-numeric value from %s (%s=%s) (ignored)', tag, key, value)
             continue
         if key not in registry_metrics:
             registry_metrics[key] = Gauge('ruuvi_%s' % key, ' ', ['sensor', 'identifier'], registry=REGISTRY)
