@@ -82,6 +82,8 @@ def bluetoothctl_enable(btr):
 def handle_metrics(tag, m):
     global registry_metrics
     for key, value in m.items():
+        if key in ['mac']:
+            continue
         if not isinstance(value, (int, float)):
             logger.error('got non-numeric value from %s (%s=%s) (ignored)', tag, key, value)
             continue
