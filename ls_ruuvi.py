@@ -130,7 +130,11 @@ def btmon_loop(btr):
         line = btr.get_line()
         if line.startswith('> HCI Event'):
             if ev is not None:
-                handle_event(ev)
+                try:
+                    handle_event(ev)
+                except BaseException as be:
+                    logger.exception(be)
+                    continue
             if 'LE Meta Event' in line:
                 ev = {'type': 'le_meta'}
             else:
