@@ -5,8 +5,8 @@ import threading
 import time
 import logging
 import ruuvitag
-from prometheus_client import start_http_server, Gauge
-from prometheus_client.core import REGISTRY
+from prometheus_client import start_http_server
+from prometheus_client.core import REGISTRY, GaugeMetricFamily
 
 
 logging.basicConfig(
@@ -18,7 +18,9 @@ parser = argparse.ArgumentParser(description='less shitty ruuvitag beacon catche
 parser.add_argument('-i', '--index-controller', required=False, help='BT controller index', type=int, default=0)
 parser.add_argument('-p', '--exporter-port', required=True, help='Prometheus Exporter port', type=int)
 args = parser.parse_args()
-registry_metrics = {}
+
+metrics = {}
+metrics_lock = threading.Lock()
 
 
 class Executor(object):
@@ -80,16 +82,16 @@ def bluetoothctl_enable(btr):
 
 
 def handle_metrics(tag, m):
-    global registry_metrics
     for key, value in m.items():
         if key in ['mac']:
             continue
         if not isinstance(value, (int, float)):
             logger.error('got non-numeric value from %s (%s=%s) (ignored)', tag, key, value)
             continue
-        if key not in registry_metrics:
-            registry_metrics[key] = Gauge('ruuvi_%s' % key, ' ', ['sensor', 'identifier'], registry=REGISTRY)
-        registry_metrics[key].labels(tag, 'n/a').set(value)
+        with metrics_lock:
+            if tag not in metrics:
+                metrics[tag] = {}
+            metrics[tag][key] = (value, time.time())
 
 
 def handle_event(ev):
@@ -152,12 +154,25 @@ def btmon_loop(btr):
                 ev[key] = value
 
 
+class CustomCollector(object):
+    def collect(self):
+        gmf = {}
+        with metrics_lock:
+            for tag, tag_metrics in metrics.items():
+                for tag_metric, value_info in tag_metrics.items():
+                    if tag_metric not in gmf:
+                        gmf[tag_metric] = GaugeMetricFamily(tag_metric, '', labels=['sensor', 'identifier'])
+                    gmf[tag_metric].add_metric([tag, 'n/a'], value_info[0], value_info[1])
+        for family in gmf.values():
+            yield family
+
 def main():
     bluetoothctl_runner = Executor()
     bluetoothctl_runner.start_process(['bluetoothctl'])
     bluetoothctl_select_adapter(bluetoothctl_runner)
     bluetoothctl_enable(bluetoothctl_runner)
     start_http_server(args.exporter_port)
+    REGISTRY.register(CustomCollector())
     btmon_runner = Executor()
     btmon_runner.start_process(['btmon', '-i', '%s' % args.index_controller])
     btmon_loop(btmon_runner)
