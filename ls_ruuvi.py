@@ -161,7 +161,7 @@ class CustomCollector(object):
             for tag, tag_metrics in metrics.items():
                 for tag_metric, value_info in tag_metrics.items():
                     if tag_metric not in gmf:
-                        gmf[tag_metric] = GaugeMetricFamily(tag_metric, '', labels=['sensor', 'identifier'])
+                        gmf[tag_metric] = GaugeMetricFamily('ruuvi_{}'.format(tag_metric), '', labels=['sensor', 'identifier'])
                     gmf[tag_metric].add_metric([tag, 'n/a'], value_info[0], value_info[1])
         for family in gmf.values():
             yield family
